@@ -9,7 +9,7 @@ public class Cliente_UDP {
         BufferedReader userInput = new BufferedReader(
                 new InputStreamReader(System.in));
         DatagramSocket clientSocket = new DatagramSocket();
-        InetAddress serverAddress = InetAddress.getByName("10.14.44.132");
+        InetAddress serverAddress = InetAddress.getByName("localhost");
 
         byte[] sendData = new byte[1024];
         byte[] receiveData = new byte[1024];
