@@ -1,74 +1,89 @@
 package servidor_udp;
 
-import java.net.*;
 import java.io.*;
-import java.util.HashMap;
-import java.util.Map;
+import java.net.*;
+import java.lang.Integer;
 
+// Server class
 public class Servidor_UDP {
+    private static long resultado = 0;
     public static void main(String[] args) {
+        ServerSocket server = null;
+
         try {
-            DatagramSocket serverSocket = new DatagramSocket(9870);
-            byte[] receiveData = new byte[1024];
-            byte[] sendData = new byte[1024];
-            System.out.println("SERVIDOR EM AÇÃO!!!");
+            // server is listening on port 1234
+            server = new ServerSocket(1234);
+            server.setReuseAddress(true);
+            int counter = 0;
 
-            // Estrutura para armazenar a relação de preços
-            Map<String, Double> priceList = new HashMap<>();
-
+            // running infinite loop for getting
+            // client request
             while (true) {
-                DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
-                serverSocket.receive(receivePacket);
+                counter++;
 
-                String request = new String(receivePacket.getData(), 0, receivePacket.getLength());
-                System.out.println("RECEIVE: " + request);
+                // socket object to receive incoming client
+                // requests
+                Socket client = server.accept();
 
-                InetAddress clientAddress = receivePacket.getAddress();
-                int clientPort = receivePacket.getPort();
+                // Displaying that new client is connected
+                // to server
+                System.out.println("Novo cliente conectado no endereço: "
+                        + client.getInetAddress()
+                        .getHostAddress());
 
-                String response;
+                // create a new thread object
+                ClientHandler clientSock
+                        = new ClientHandler(client, counter);
 
-                // Implemente a lógica para verificar o desvio numérico e atualizar a relação de preços aqui.
-                // Para simplificar, usarei uma relação de preços fixa.
-                priceList.put("AAPL", 150.0);
-                priceList.put("GOOGL", 2800.0);
+                // This thread will handle the client
+                // separately
+                Thread t = new Thread(clientSock);
 
-                if (request.equals("get latest")) {
-                    response = getPriceListAsString(priceList);
-                } else if (request.equals("get outdated")) {
-                    // Simula uma versão desatualizada da relação de preços
-                    Map<String, Double> outdatedPriceList = new HashMap<>(priceList);
-                    outdatedPriceList.put("AAPL", 145.0);
-                    response = getPriceListAsString(outdatedPriceList);
-                } else {
-                    response = "Comando desconhecido.";
-                }
-
-                sendData = response.getBytes();
-
-                DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, clientAddress, clientPort);
-                serverSocket.send(sendPacket);
-
-                receiveData = new byte[1024];
-
-                if (request.equals("fim")) {
-                    serverSocket.close();
-                    break;
-                }
+                t.start();
             }
-        } catch (SocketException e) {
-            System.out.println("Socket: " + e.getMessage());
-        } catch (IOException e) {
-            System.out.println("IO: " + e.getMessage());
+        }
+        catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
-    private static String getPriceListAsString(Map<String, Double> priceList) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("Preços do Mercado de Ações:\n");
-        for (Map.Entry<String, Double> entry : priceList.entrySet()) {
-            sb.append(entry.getKey()).append(": R$ ").append(entry.getValue()).append("\n");
+    // ClientHandler class
+    private static class ClientHandler implements Runnable {
+        private final Socket clientSocket;
+        private int counter;
+
+        // Constructor
+        public ClientHandler(Socket socket, int counter) {
+            this.clientSocket = socket;
+            this.counter = counter;
         }
-        return sb.toString();
+
+        public void run() {
+            PrintWriter out = null;
+            BufferedReader in = null;
+            try {
+                // get the outputstream of client
+                out = new PrintWriter(
+                        clientSocket.getOutputStream(), true);
+
+                // get the inputstream of client
+                in = new BufferedReader(
+                        new InputStreamReader(
+                                clientSocket.getInputStream()));
+
+                out.println(25*counter);
+
+                String line = in.readLine();
+
+                int r = Integer.parseInt(line);
+                resultado += r;
+                System.out.println(resultado);
+
+            }
+            catch (IOException e) {
+                e.printStackTrace();
+            }
+
+        }
     }
 }
