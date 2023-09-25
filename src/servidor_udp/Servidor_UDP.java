@@ -1,74 +1,61 @@
 package servidor_udp;
 
-import java.net.*;
 import java.io.*;
-import java.util.HashMap;
-import java.util.Map;
+import java.net.*;
 
 public class Servidor_UDP {
     public static void main(String[] args) {
-        try {
-            DatagramSocket serverSocket = new DatagramSocket(9870);
-            byte[] receiveData = new byte[1024];
-            byte[] sendData = new byte[1024];
-            System.out.println("SERVIDOR EM AÇÃO!!!");
+        int port = 12345;
+        String stockPriceFile = "prices.txt"; // Nome do arquivo de preços das ações
 
-            // Estrutura para armazenar a relação de preços
-            Map<String, Double> priceList = new HashMap<>();
+        try (ServerSocket serverSocket = new ServerSocket(port)) {
+            System.out.println("Servidor está esperando por conexões...");
 
             while (true) {
-                DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
-                serverSocket.receive(receivePacket);
+                Socket clientSocket = serverSocket.accept();
+                System.out.println("Cliente conectado: " + clientSocket.getInetAddress());
 
-                String request = new String(receivePacket.getData(), 0, receivePacket.getLength());
-                System.out.println("RECEIVE: " + request);
+                // Lógica para verificar desvio de R$ 0,02 e atualizar a réplica, se necessário
+                // Aqui, assumimos uma classe PriceUpdater que implementa essa lógica.
 
-                InetAddress clientAddress = receivePacket.getAddress();
-                int clientPort = receivePacket.getPort();
+                // Verifica desvio e atualiza a réplica, se necessário
+                boolean updateRequired = PriceUpdater.checkAndUpdate(stockPriceFile);
 
-                String response;
+                // Envia a versão apropriada do arquivo para o cliente
+                String response = updateRequired ? "mutualmente consistente" : "desatualizada";
+                sendFileToClient(clientSocket, stockPriceFile, response);
 
-                // Implemente a lógica para verificar o desvio numérico e atualizar a relação de preços aqui.
-                // Para simplificar, usarei uma relação de preços fixa.
-                priceList.put("AAPL", 150.0);
-                priceList.put("GOOGL", 2800.0);
-
-                if (request.equals("get latest")) {
-                    response = getPriceListAsString(priceList);
-                } else if (request.equals("get outdated")) {
-                    // Simula uma versão desatualizada da relação de preços
-                    Map<String, Double> outdatedPriceList = new HashMap<>(priceList);
-                    outdatedPriceList.put("AAPL", 145.0);
-                    response = getPriceListAsString(outdatedPriceList);
-                } else {
-                    response = "Comando desconhecido.";
-                }
-
-                sendData = response.getBytes();
-
-                DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, clientAddress, clientPort);
-                serverSocket.send(sendPacket);
-
-                receiveData = new byte[1024];
-
-                if (request.equals("fim")) {
-                    serverSocket.close();
-                    break;
-                }
+                clientSocket.close();
+                System.out.println("Cliente desconectado.");
             }
-        } catch (SocketException e) {
-            System.out.println("Socket: " + e.getMessage());
         } catch (IOException e) {
-            System.out.println("IO: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
-    private static String getPriceListAsString(Map<String, Double> priceList) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("Preços do Mercado de Ações:\n");
-        for (Map.Entry<String, Double> entry : priceList.entrySet()) {
-            sb.append(entry.getKey()).append(": R$ ").append(entry.getValue()).append("\n");
+    private static void sendFileToClient(Socket clientSocket, String fileName, String response) throws IOException {
+        try (BufferedReader fileReader = new BufferedReader(new FileReader(fileName));
+             PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true)) {
+
+            // Envia a resposta ao cliente
+            out.println(response);
+
+            // Envia o conteúdo do arquivo
+            String line;
+            while ((line = fileReader.readLine()) != null) {
+                out.println(line);
+            }
         }
-        return sb.toString();
+    }
+}
+
+class PriceUpdater {
+    public static boolean checkAndUpdate(String fileName) {
+        // Lógica para verificar se é necessário atualizar a réplica com base no desvio de R$ 0,02.
+        // Retorna true se a atualização for necessária, caso contrário, retorna false.
+        // Implemente sua lógica de verificação aqui.
+
+        // Neste exemplo simples, assumimos que a atualização é sempre necessária para fins de demonstração.
+        return true;
     }
 }
