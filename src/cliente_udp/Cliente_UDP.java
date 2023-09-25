@@ -3,7 +3,6 @@ package cliente_udp;
 import java.io.*;
 import java.net.*;
 
-// Client class
 public class Cliente_UDP {
 
     // driver code
