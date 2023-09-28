@@ -1,39 +1,27 @@
 package cliente_udp;
 
-import java.net.*;
 import java.io.*;
+import java.net.Socket;
 
 public class Cliente_UDP {
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) {
+        try {
+            Socket clientSocket = new Socket("endereco_do_servidor", 12345); // Substitua pelo endereço real do servidor
 
-        BufferedReader userInput = new BufferedReader(
-                new InputStreamReader(System.in));
-        DatagramSocket clientSocket = new DatagramSocket();
-        InetAddress serverAddress = InetAddress.getByName("localhost");
-
-        byte[] sendData = new byte[1024];
-        byte[] receiveData = new byte[1024];
-        String input;
-
-        while (true) {
-            System.out.println("Digite 'get latest' para obter a versão mais recente ou 'get outdated' para obter a versão desatualizada:");
-            input = userInput.readLine();
-            sendData = input.getBytes();
-
-            DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, serverAddress, 9870);
-            clientSocket.send(sendPacket);
-
-            DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
-            clientSocket.receive(receivePacket);
-
-            String response = new String(receivePacket.getData(), 0, receivePacket.getLength());
-            System.out.println("RESPOSTA DO SERVIDOR:\n" + response);
-
-            if (input.equals("fim")) {
-                clientSocket.close();
-                break;
+            // Código para receber o arquivo do servidor
+            InputStream is = clientSocket.getInputStream();
+            FileOutputStream fos = new FileOutputStream("arquivo_recebido.txt");
+            byte[] buffer = new byte[1024];
+            int bytesRead;
+            while ((bytesRead = is.read(buffer)) != -1) {
+                fos.write(buffer, 0, bytesRead);
             }
+            fos.close();
+            is.close();
+
+            clientSocket.close();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 }
-
