@@ -6,6 +6,11 @@ import java.net.Socket;
 
 public class Servidor_UDP {
     public static void main(String[] args) {
+
+        String diretorioAtual = System.getProperty("user.dir");
+
+        String caminhoDoArquivo = diretorioAtual + "/assets/generated/prices.txt";
+
         try {
             ServerSocket serverSocket = new ServerSocket(12345); // Porta do servidor
 
@@ -15,7 +20,7 @@ public class Servidor_UDP {
                 System.out.println("Conexão estabelecida com " + clientSocket.getInetAddress());
 
                 // Código para enviar o arquivo ao cliente
-                File fileToSend = new File("arquivo.txt");
+                File fileToSend = new File(caminhoDoArquivo);
                 FileInputStream fis = new FileInputStream(fileToSend);
                 OutputStream os = clientSocket.getOutputStream();
                 byte[] buffer = new byte[1024];
