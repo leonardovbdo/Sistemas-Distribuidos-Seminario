@@ -1,18 +1,18 @@
-package servidor_udp;
+package servidor_replica;
 
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-public class Servidor_UDP {
+public class ServidorReplica {
     public static void main(String[] args) {
 
         String diretorioAtual = System.getProperty("user.dir");
 
-        String caminhoDoArquivo = diretorioAtual + "/assets/generated/valores_servidor.txt";
+        String caminhoDoArquivo = diretorioAtual + "/assets/generated/valores_replica.txt";
 
         try {
-            ServerSocket serverSocket = new ServerSocket(12345); // Porta do servidor
+            ServerSocket serverSocket = new ServerSocket(54321); // Porta do novo servidor
 
             while (true) {
                 System.out.println("Aguardando conexão...");
