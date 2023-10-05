@@ -10,7 +10,7 @@ import java.util.Map;
 import java.util.Scanner;
 
 public class Cliente {
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
 
         System.out.println("Escolha o servidor (1 para Servidor Atualizado, 2 para Servidor Replica): ");
