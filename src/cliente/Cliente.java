@@ -56,5 +56,6 @@ public class Cliente {
         } catch (IOException e) {
             System.err.println("Erro ao comunicar com o servidor: " + e.getMessage());
         }
+        
     }
 }
